@@ -6,6 +6,7 @@
     flex-direction: column;
     flex-wrap: wrap;
     align-items: flex-start;
+    gap: 0.25rem;
     padding: 1rem 0;
     border-bottom: 1px solid grey;
 
@@ -14,6 +15,13 @@
       gap: 1rem;
       align-items: center;
       flex-wrap: wrap;
+
+      .range {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        text-transform: capitalize;
+      }
 
       mat-form-field {
         display: inline-flex;

@@ -21,10 +21,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { distinctUntilChanged, filter, map, Subscription } from 'rxjs';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatSliderModule } from '@angular/material/slider';
 
+// TODO: export?
 type Period = { start: Date; end: Date };
+type Range = { min: number; max: number };
+
 type ArrayTypes = string[] | number[];
-type SupportedTypes = string | number | ArrayTypes | Period | boolean;
+type SupportedTypes = string | number | ArrayTypes | Period | Range | boolean;
 
 @Component({
   selector: 'filter-bar',
@@ -37,6 +41,7 @@ type SupportedTypes = string | number | ArrayTypes | Period | boolean;
     MatSlideToggleModule,
     MatButtonModule,
     MatDatepickerModule,
+    MatSliderModule,
   ],
   templateUrl: './filter-bar.component.html',
   styleUrl: './filter-bar.component.scss',
@@ -53,9 +58,12 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
   form!: FormGroup;
   private filterSub!: Subscription;
 
+  rangeLimits: Record<string, { min: number; max: number }> = {};
+
   ngOnInit() {
     this.form = this.buildForm(this.filterSchema);
 
+    // TODO: Debounce because range
     this.filterSub = this.form.valueChanges
       .pipe(
         map((v) => this.cleanFilter<T>(v)),
@@ -85,6 +93,14 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
             start: null,
             end: null,
           });
+        } else if (type === 'range') {
+          const range = filterSchema[key] as Range;
+          this.rangeLimits[key] = { min: range.min, max: range.max };
+
+          controls[key] = this.fb.group({
+            min: range.min,
+            max: range.max,
+          });
         } else {
           controls[key] = this.fb.control(null);
         }
@@ -112,10 +128,18 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
   /** Get schema key type to render the fields */
   getType(
     key: string,
-  ): 'string' | 'number' | 'array' | 'period' | 'boolean' | undefined {
+  ):
+    | 'string'
+    | 'number'
+    | 'array'
+    | 'period'
+    | 'range'
+    | 'boolean'
+    | undefined {
     const value = this.filterSchema[key];
     if (Array.isArray(value)) return 'array';
     if (this.isPeriod(value)) return 'period';
+    if (this.isRange(value)) return 'range';
     if (typeof value === 'string') return 'string';
     if (typeof value === 'number') return 'number';
     if (typeof value === 'boolean') return 'boolean';
@@ -129,6 +153,7 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
       'number',
       'array',
       'period',
+      'range',
       'boolean',
     ] as const;
 
@@ -162,6 +187,19 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
       'end' in obj &&
       obj.start instanceof Date &&
       obj.end instanceof Date
+    );
+  }
+
+  /** Checks if object is a Range */
+  isRange(obj: any): boolean {
+    return (
+      obj &&
+      typeof obj === 'object' &&
+      Object.keys(obj).length === 2 &&
+      'min' in obj &&
+      'max' in obj &&
+      typeof obj.min === 'number' &&
+      typeof obj.max === 'number'
     );
   }
 }

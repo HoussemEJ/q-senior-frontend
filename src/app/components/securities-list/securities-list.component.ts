@@ -67,7 +67,8 @@ export class SecuritiesListComponent {
     ],
     currencies: ['USD', 'EUR', 'GBP'],
     isPrivate: false,
-    period: { start: new Date(), end: new Date() },
+    duration: { start: new Date(), end: new Date() },
+    cost: { min: 50, max: 2000 },
   };
 
   constructor() {
