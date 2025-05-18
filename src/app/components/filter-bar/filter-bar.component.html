@@ -1,0 +1,61 @@
+<form [formGroup]="form" class="form-container">
+  <div class="group">
+    @for (key of getKeys(); track $index) {
+      @let dateType = getType(key);
+
+      @if (dateType === 'string') {
+        <mat-form-field appearance="outline">
+          <mat-label>Search by {{ key }}</mat-label>
+          <input matInput type="text" [formControlName]="key" />
+        </mat-form-field>
+      }
+
+      @if (dateType === 'number') {
+        <mat-form-field appearance="outline">
+          <mat-label>{{ key }}</mat-label>
+          <input matInput type="number" [formControlName]="key" />
+        </mat-form-field>
+      }
+
+      @if (dateType === 'array') {
+        <mat-form-field appearance="outline">
+          <mat-label>{{ key }}</mat-label>
+          <mat-select [formControlName]="key" multiple>
+            <mat-select-trigger>
+              {{ form.get(key)?.value?.[0] || '' }}
+              @if ((form.get(key)?.value?.length || 0) > 1) {
+                <span class="additional-selection">
+                  (+{{ (form.get(key)?.value?.length ?? 0) - 1 }}
+                  {{
+                    (form.get(key)?.value?.length ?? 0) === 2
+                      ? 'other'
+                      : 'others'
+                  }})
+                </span>
+              }
+            </mat-select-trigger>
+
+            @for (option of getArrayOptions(key); track $index) {
+              <mat-option [value]="option">
+                {{ option }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+    }
+  </div>
+
+  <div class="group">
+    @for (key of getKeys(); track $index) {
+      @if (getType(key) === 'boolean') {
+        <mat-slide-toggle [formControlName]="key">
+          <span>{{ key }}</span>
+        </mat-slide-toggle>
+      }
+    }
+    <div class="form-actions">
+      <button mat-stroked-button (click)="resetFilters()">Reset Filters</button>
+    </div>
+  </div>
+</form>

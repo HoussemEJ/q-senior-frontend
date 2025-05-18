@@ -11,12 +11,13 @@ import {
   MatRow,
   MatRowDef,
 } from '@angular/material/table';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, map } from 'rxjs';
 import { indicate } from '../../utils';
 import { Security } from '../../models/security';
 import { SecurityService } from '../../services/security.service';
 import { FilterableTableComponent } from '../filterable-table/filterable-table.component';
 import { AsyncPipe } from '@angular/common';
+import { PagingFilter, SecuritiesFilter } from '../../models/securities-filter';
 
 @Component({
   selector: 'securities-list',
@@ -46,7 +47,49 @@ export class SecuritiesListComponent {
   protected loadingSecurities$: BehaviorSubject<boolean> =
     new BehaviorSubject<boolean>(false);
 
-  protected securities$: Observable<Security[]> = this._securityService
-    .getSecurities({})
-    .pipe(indicate(this.loadingSecurities$));
+  protected securities$: Observable<Security[]> = new Observable();
+  protected totalItems$: Observable<number> = new Observable();
+
+  private securitiesFilter: SecuritiesFilter = {};
+  private pagingFilter: PagingFilter = {};
+
+  protected filterSchema: SecuritiesFilter = {
+    name: '',
+    types: [
+      'Equity',
+      'Closed-endFund',
+      'BankAccount',
+      'DirectHolding',
+      'Collectible',
+      'Loan',
+      'RealEstate',
+      'Generic',
+    ],
+    currencies: ['USD', 'EUR', 'GBP'],
+    isPrivate: false,
+  };
+
+  constructor() {
+    this.loadSecurities();
+  }
+
+  private loadSecurities() {
+    const filter = { ...this.securitiesFilter, ...this.pagingFilter };
+    const result$ = this._securityService
+      .getSecurities(filter)
+      .pipe(indicate(this.loadingSecurities$));
+
+    this.securities$ = result$.pipe(map((res) => res.securities));
+    this.totalItems$ = result$.pipe(map((res) => res.total));
+  }
+
+  public onFilterChange(securitiesFilter: SecuritiesFilter) {
+    this.securitiesFilter = securitiesFilter;
+    this.loadSecurities();
+  }
+
+  public onPageChange(pagingFilter: PagingFilter) {
+    this.pagingFilter = pagingFilter;
+    this.loadSecurities();
+  }
 }

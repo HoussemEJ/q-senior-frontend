@@ -1,7 +1,7 @@
 import { defer, finalize, Observable, Subject } from 'rxjs';
 
 export function prepare<T>(
-  callback: () => void
+  callback: () => void,
 ): (source: Observable<T>) => Observable<T> {
   return (source: Observable<T>): Observable<T> =>
     defer(() => {
@@ -11,7 +11,7 @@ export function prepare<T>(
 }
 
 export function indicate<T>(
-  indicator: Subject<boolean>
+  indicator: Subject<boolean>,
 ): (source: Observable<T>) => Observable<T> {
   return (source: Observable<T>): Observable<T> =>
     source.pipe(
@@ -22,6 +22,6 @@ export function indicate<T>(
       finalize(() => {
         console.log('finalize');
         indicator.next(false);
-      })
+      }),
     );
 }

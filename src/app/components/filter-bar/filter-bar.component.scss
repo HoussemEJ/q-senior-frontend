@@ -1,0 +1,42 @@
+:host {
+  display: block;
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 1rem 0;
+    border-bottom: 1px solid grey;
+
+    .group {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+
+      mat-form-field {
+        display: inline-flex;
+        max-width: 200px;
+
+        mat-label {
+          display: inline-flex;
+          text-transform: capitalize;
+          font-size: 0.9rem;
+        }
+
+        .additional-selection {
+          opacity: 0.75;
+          font-size: 0.75em;
+          line-height: 1;
+        }
+      }
+    }
+
+    mat-slide-toggle {
+      span {
+        color: var(--text-color);
+      }
+    }
+  }
+}
