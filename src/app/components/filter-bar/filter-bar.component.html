@@ -43,6 +43,25 @@
           </mat-select>
         </mat-form-field>
       }
+
+      @if (dateType === 'period') {
+        <mat-form-field class="period" appearance="outline">
+          <mat-label>{{ key }}</mat-label>
+          <mat-date-range-input [formGroupName]="key" [rangePicker]="picker">
+            <input
+              matStartDate
+              formControlName="start"
+              placeholder="Start date"
+            />
+            <input matEndDate formControlName="end" placeholder="End date" />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      }
     }
   </div>
 

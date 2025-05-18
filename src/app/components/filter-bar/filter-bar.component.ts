@@ -9,8 +9,8 @@ import {
   Output,
 } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
-  FormControl,
   FormGroup,
   ReactiveFormsModule,
 } from '@angular/forms';
@@ -19,19 +19,24 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { distinctUntilChanged, filter, map, Subscription } from 'rxjs';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
+type Period = { start: Date; end: Date };
 type ArrayTypes = string[] | number[];
-type SupportedTypes = string | number | ArrayTypes | boolean;
+type SupportedTypes = string | number | ArrayTypes | Period | boolean;
 
 @Component({
   selector: 'filter-bar',
   standalone: true,
+  providers: [provideNativeDateAdapter()],
   imports: [
     ReactiveFormsModule,
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
     MatButtonModule,
+    MatDatepickerModule,
   ],
   templateUrl: './filter-bar.component.html',
   styleUrl: './filter-bar.component.scss',
@@ -70,12 +75,19 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
 
   /** Build form based on schema keys */
   private buildForm(filterSchema: T): FormGroup {
-    const controls: Record<string, FormControl> = {};
+    const controls: Record<string, AbstractControl> = {};
 
     Object.keys(filterSchema).forEach((key) => {
       const type = this.getType(key);
       if (type) {
-        controls[key] = this.fb.control(null);
+        if (type === 'period') {
+          controls[key] = this.fb.group({
+            start: null,
+            end: null,
+          });
+        } else {
+          controls[key] = this.fb.control(null);
+        }
       }
     });
 
@@ -85,14 +97,25 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
   /** Remove null or undefined fields */
   cleanFilter<T>(value: Record<string, any>): Partial<T> {
     return Object.fromEntries(
-      Object.entries(value).filter(([_, v]) => v != null),
+      Object.entries(value).filter(([_, v]) => {
+        // Remove null values
+        if (v == null) return false;
+        if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+          // Remove object if any property is null/undefined
+          return Object.values(v).every((p) => p != null);
+        }
+        return true;
+      }),
     ) as Partial<T>;
   }
 
   /** Get schema key type to render the fields */
-  getType(key: string): 'string' | 'number' | 'array' | 'boolean' | undefined {
+  getType(
+    key: string,
+  ): 'string' | 'number' | 'array' | 'period' | 'boolean' | undefined {
     const value = this.filterSchema[key];
     if (Array.isArray(value)) return 'array';
+    if (this.isPeriod(value)) return 'period';
     if (typeof value === 'string') return 'string';
     if (typeof value === 'number') return 'number';
     if (typeof value === 'boolean') return 'boolean';
@@ -101,7 +124,13 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
 
   /** Return schema keys, sorted by type priority (priority controls rendering order) */
   getKeys(): string[] {
-    const priority = ['string', 'number', 'array', 'boolean'] as const;
+    const priority = [
+      'string',
+      'number',
+      'array',
+      'period',
+      'boolean',
+    ] as const;
 
     return Object.keys(this.filterSchema).sort((a, b) => {
       const ta = this.getType(a) as (typeof priority)[number];
@@ -121,5 +150,18 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
   resetFilters() {
     this.form.reset();
     this.filterChange.emit({} as T);
+  }
+
+  /** Checks if object is a Period */
+  isPeriod(obj: any): boolean {
+    return (
+      obj &&
+      typeof obj === 'object' &&
+      Object.keys(obj).length === 2 &&
+      'start' in obj &&
+      'end' in obj &&
+      obj.start instanceof Date &&
+      obj.end instanceof Date
+    );
   }
 }

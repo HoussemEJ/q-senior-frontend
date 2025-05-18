@@ -53,7 +53,7 @@ export class SecuritiesListComponent {
   private securitiesFilter: SecuritiesFilter = {};
   private pagingFilter: PagingFilter = {};
 
-  protected filterSchema: SecuritiesFilter = {
+  protected filterSchema: any = {
     name: '',
     types: [
       'Equity',
@@ -67,6 +67,7 @@ export class SecuritiesListComponent {
     ],
     currencies: ['USD', 'EUR', 'GBP'],
     isPrivate: false,
+    period: { start: new Date(), end: new Date() },
   };
 
   constructor() {
