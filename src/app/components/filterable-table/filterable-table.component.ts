@@ -23,6 +23,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { FilterBarComponent } from '../filter-bar/filter-bar.component';
 import { PaginationBarComponent } from '../pagination-bar/pagination-bar.component';
 import { PagingFilter } from '../../models/securities-filter';
+import { FieldSuggestions } from '../../models/field-suggestions';
 
 @Component({
   selector: 'filterable-table',
@@ -58,6 +59,8 @@ export class FilterableTableComponent<T> implements AfterContentInit {
   @Output() pageChange = new EventEmitter<PagingFilter>();
   @Input() totalItems: number | null = 0;
   @Input() filterSchema = {};
+
+  @Input() fieldSuggestions?: FieldSuggestions;
 
   public ngAfterContentInit(): void {
     this.columnDefs?.forEach((columnDef) =>

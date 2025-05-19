@@ -4,9 +4,21 @@
       @let dateType = getType(key);
 
       @if (dateType === 'string') {
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="wide-input">
           <mat-label>Search by {{ key }}</mat-label>
-          <input matInput type="text" [formControlName]="key" />
+          <input
+            matInput
+            type="text"
+            [formControlName]="key"
+            [matAutocomplete]="auto"
+          />
+          <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+            @for (option of fieldSuggestions?.suggestions; track $index) {
+              <mat-option [value]="option">
+                {{ option }}
+              </mat-option>
+            }
+          </mat-autocomplete>
         </mat-form-field>
       }
 

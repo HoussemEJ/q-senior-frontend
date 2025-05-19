@@ -18,6 +18,7 @@ import { SecurityService } from '../../services/security.service';
 import { FilterableTableComponent } from '../filterable-table/filterable-table.component';
 import { AsyncPipe } from '@angular/common';
 import { PagingFilter, SecuritiesFilter } from '../../models/securities-filter';
+import { FieldSuggestions } from '../../models/field-suggestions';
 
 @Component({
   selector: 'securities-list',
@@ -53,6 +54,9 @@ export class SecuritiesListComponent {
   private securitiesFilter: SecuritiesFilter = {};
   private pagingFilter: PagingFilter = {};
 
+  protected fieldSuggestions?: FieldSuggestions =
+    this._securityService.suggestions();
+
   protected filterSchema: SecuritiesFilter = {
     name: '',
     types: [
@@ -86,6 +90,7 @@ export class SecuritiesListComponent {
   public onFilterChange(securitiesFilter: SecuritiesFilter) {
     this.securitiesFilter = securitiesFilter;
     this.loadSecurities();
+    this.fieldSuggestions = this._securityService.suggestions();
   }
 
   public onPageChange(pagingFilter: PagingFilter) {

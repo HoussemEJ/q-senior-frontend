@@ -19,6 +19,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { distinctUntilChanged, filter, map, Subscription } from 'rxjs';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { FieldSuggestions } from '../../models/field-suggestions';
 
 type ArrayTypes = string[] | number[];
 type SupportedTypes = string | number | ArrayTypes | boolean;
@@ -32,6 +34,7 @@ type SupportedTypes = string | number | ArrayTypes | boolean;
     MatSelectModule,
     MatSlideToggleModule,
     MatButtonModule,
+    MatAutocompleteModule,
   ],
   templateUrl: './filter-bar.component.html',
   styleUrl: './filter-bar.component.scss',
@@ -44,6 +47,8 @@ export class FilterBarComponent<T extends Record<string, SupportedTypes>>
 
   @Input() filterSchema: T = {} as T;
   @Output() filterChange = new EventEmitter<T>();
+
+  @Input() fieldSuggestions?: FieldSuggestions;
 
   form!: FormGroup;
   private filterSub!: Subscription;

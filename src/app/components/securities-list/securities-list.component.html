@@ -6,6 +6,7 @@
   [totalItems]="totalItems$ | async"
   (filterChange)="onFilterChange($event)"
   (pageChange)="onPageChange($event)"
+  [fieldSuggestions]="fieldSuggestions"
 >
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef>Name</th>

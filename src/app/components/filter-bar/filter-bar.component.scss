@@ -15,6 +15,10 @@
       align-items: center;
       flex-wrap: wrap;
 
+      .wide-input {
+        min-width: 400px;
+      }
+
       mat-form-field {
         display: inline-flex;
         max-width: 200px;
