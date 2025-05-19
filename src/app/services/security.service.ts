@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { delay, Observable, of } from 'rxjs';
 import { Security } from '../models/security';
 import { SECURITIES } from '../mocks/securities-mocks';
-import { SecuritiesFilter } from '../models/securities-filter';
+import { SecuritiesFilter, SortFilter } from '../models/securities-filter';
 
 @Injectable({
   providedIn: 'root',
@@ -14,8 +14,11 @@ export class SecurityService {
   getSecurities(
     securityFilter?: SecuritiesFilter,
   ): Observable<{ securities: Security[]; total: number }> {
-    const filteredSecurities = this._filterSecurities(securityFilter);
+    let filteredSecurities = this._filterSecurities(securityFilter);
+    this._sortSecurities(filteredSecurities, securityFilter);
+
     const total = filteredSecurities.length;
+
     const paginatedSecurities = filteredSecurities.slice(
       securityFilter?.skip ?? 0,
       (securityFilter?.skip ?? 0) + (securityFilter?.limit ?? 100),
@@ -43,5 +46,30 @@ export class SecurityService {
           )) &&
         (securityFilter.isPrivate === true ? s.isPrivate : true),
     );
+  }
+
+  private _sortSecurities(
+    items: Security[],
+    sort: SortFilter | undefined,
+  ): Security[] {
+    if (
+      !sort?.sortBy ||
+      !sort?.sortDir ||
+      !['asc', 'desc'].includes(sort.sortDir)
+    ) {
+      return items;
+    }
+
+    const isAsc = sort.sortDir === 'asc';
+    const key = sort.sortBy as keyof Security;
+
+    return items.sort((a, b) => {
+      const aVal = a[key];
+      const bVal = b[key];
+
+      if (aVal < bVal) return isAsc ? -1 : 1;
+      if (aVal > bVal) return isAsc ? 1 : -1;
+      return 0;
+    });
   }
 }

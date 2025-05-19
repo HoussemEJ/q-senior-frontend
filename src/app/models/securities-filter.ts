@@ -3,7 +3,12 @@ export interface PagingFilter {
   limit?: number;
 }
 
-export interface SecuritiesFilter extends PagingFilter {
+export interface SortFilter extends PagingFilter {
+  sortBy?: string;
+  sortDir?: string;
+}
+
+export interface SecuritiesFilter extends SortFilter {
   name?: string;
   types?: string[];
   currencies?: string[];

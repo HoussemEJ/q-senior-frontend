@@ -1,52 +1,43 @@
 import {
-  AfterContentInit,
   ChangeDetectionStrategy,
   Component,
-  ContentChild,
-  ContentChildren,
   EventEmitter,
   Input,
   Output,
-  QueryList,
-  ViewChild,
 } from '@angular/core';
 import { Observable } from 'rxjs';
-import {
-  MatColumnDef,
-  MatHeaderRowDef,
-  MatNoDataRow,
-  MatRowDef,
-  MatTable,
-} from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
+
 import { DataSource } from '@angular/cdk/collections';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { FilterBarComponent } from '../filter-bar/filter-bar.component';
 import { PaginationBarComponent } from '../pagination-bar/pagination-bar.component';
-import { PagingFilter } from '../../models/securities-filter';
+import { PagingFilter, SortFilter } from '../../models/securities-filter';
+import { MatSortModule, Sort } from '@angular/material/sort';
+import { CommonModule } from '@angular/common';
+
+export interface ColumnConfig{
+  id: string;
+  label: string;
+}
 
 @Component({
   selector: 'filterable-table',
   standalone: true,
   imports: [
+    CommonModule,
     MatProgressSpinner,
-    MatTable,
+    MatTableModule,
     FilterBarComponent,
     PaginationBarComponent,
+    MatSortModule,
   ],
   templateUrl: './filterable-table.component.html',
   styleUrl: './filterable-table.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FilterableTableComponent<T> implements AfterContentInit {
-  @ContentChildren(MatHeaderRowDef) headerRowDefs?: QueryList<MatHeaderRowDef>;
-  @ContentChildren(MatRowDef) rowDefs?: QueryList<MatRowDef<T>>;
-  @ContentChildren(MatColumnDef) columnDefs?: QueryList<MatColumnDef>;
-  @ContentChild(MatNoDataRow) noDataRow?: MatNoDataRow;
-
-  @ViewChild(MatTable, { static: true }) table?: MatTable<T>;
-
-  @Input() columns: string[] = [];
-
+export class FilterableTableComponent<T> {
+  @Input() columns: ColumnConfig[] = [];
   @Input() dataSource:
     | readonly T[]
     | DataSource<T>
@@ -54,20 +45,14 @@ export class FilterableTableComponent<T> implements AfterContentInit {
     | null = null;
   @Input() isLoading: boolean | null = false;
 
+  @Output() sortChange = new EventEmitter<SortFilter>();
   @Output() filterChange = new EventEmitter<any>();
   @Output() pageChange = new EventEmitter<PagingFilter>();
   @Input() totalItems: number | null = 0;
   @Input() filterSchema = {};
 
-  public ngAfterContentInit(): void {
-    this.columnDefs?.forEach((columnDef) =>
-      this.table?.addColumnDef(columnDef),
-    );
-    this.rowDefs?.forEach((rowDef) => this.table?.addRowDef(rowDef));
-    this.headerRowDefs?.forEach((headerRowDef) =>
-      this.table?.addHeaderRowDef(headerRowDef),
-    );
-    this.table?.setNoDataRow(this.noDataRow ?? null);
+  get displayedColumnIds(): string[] {
+    return this.columns.map((col) => col.id);
   }
 
   public onFilterChange(filter: any) {
@@ -76,5 +61,10 @@ export class FilterableTableComponent<T> implements AfterContentInit {
 
   public onPageChange(pagingFilter: PagingFilter) {
     this.pageChange.emit(pagingFilter);
+  }
+
+  public onSortChange(sort: Sort) {
+    const sortfilter: SortFilter = { sortBy: sort.active, sortDir: sort.direction };
+    this.sortChange.emit(sortfilter);
   }
 }

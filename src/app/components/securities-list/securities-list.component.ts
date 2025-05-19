@@ -1,41 +1,20 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import {
-  MatCell,
-  MatCellDef,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderCellDef,
-  MatHeaderRow,
-  MatHeaderRowDef,
-  MatNoDataRow,
-  MatRow,
-  MatRowDef,
-} from '@angular/material/table';
 import { Observable, BehaviorSubject, map } from 'rxjs';
 import { indicate } from '../../utils';
 import { Security } from '../../models/security';
 import { SecurityService } from '../../services/security.service';
 import { FilterableTableComponent } from '../filterable-table/filterable-table.component';
 import { AsyncPipe } from '@angular/common';
-import { PagingFilter, SecuritiesFilter } from '../../models/securities-filter';
+import {
+  PagingFilter,
+  SecuritiesFilter,
+  SortFilter,
+} from '../../models/securities-filter';
 
 @Component({
   selector: 'securities-list',
   standalone: true,
-  imports: [
-    FilterableTableComponent,
-    AsyncPipe,
-    MatColumnDef,
-    MatHeaderCell,
-    MatHeaderCellDef,
-    MatCell,
-    MatCellDef,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatNoDataRow,
-    MatRowDef,
-    MatRow,
-  ],
+  imports: [FilterableTableComponent, AsyncPipe],
   templateUrl: './securities-list.component.html',
   styleUrl: './securities-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,9 +29,13 @@ export class SecuritiesListComponent {
   protected securities$: Observable<Security[]> = new Observable();
   protected totalItems$: Observable<number> = new Observable();
 
+  protected columns = [
+    { id: 'name', label: 'Name' },
+    { id: 'type', label: 'Type' },
+    { id: 'currency', label: 'Currency' },
+  ];
+  
   private securitiesFilter: SecuritiesFilter = {};
-  private pagingFilter: PagingFilter = {};
-
   protected filterSchema: SecuritiesFilter = {
     name: '',
     types: [
@@ -74,22 +57,29 @@ export class SecuritiesListComponent {
   }
 
   private loadSecurities() {
-    const filter = { ...this.securitiesFilter, ...this.pagingFilter };
     const result$ = this._securityService
-      .getSecurities(filter)
+      .getSecurities(this.securitiesFilter)
       .pipe(indicate(this.loadingSecurities$));
 
     this.securities$ = result$.pipe(map((res) => res.securities));
     this.totalItems$ = result$.pipe(map((res) => res.total));
   }
 
-  public onFilterChange(securitiesFilter: SecuritiesFilter) {
-    this.securitiesFilter = securitiesFilter;
+  public onFilterChange(filter: SecuritiesFilter) {
+    this.securitiesFilter = { ...this.securitiesFilter, ...filter };
     this.loadSecurities();
   }
 
-  public onPageChange(pagingFilter: PagingFilter) {
-    this.pagingFilter = pagingFilter;
+  public onPageChange(page: PagingFilter) {
+    this.securitiesFilter = { ...this.securitiesFilter, ...page };
+    this.loadSecurities();
+  }
+
+  public onSortChange(sort: SortFilter) {
+    this.securitiesFilter = {
+      ...this.securitiesFilter,
+      ...sort,
+    };
     this.loadSecurities();
   }
 }
